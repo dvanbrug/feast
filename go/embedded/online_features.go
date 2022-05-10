@@ -216,7 +216,6 @@ func (s *OnlineFeatureService) GetOnlineFeatures(
 
 func (s *OnlineFeatureService) StartGprcServer(host string, port int) error {
 	// TODO(oleksii): enable logging
-	// Disable logging for now
 	var loggingService *logging.LoggingService = nil
 	ser := server.NewGrpcServingServiceServer(s.fs, loggingService)
 	log.Printf("Starting a gRPC server on host %s port %d\n", host, port)
@@ -241,6 +240,25 @@ func (s *OnlineFeatureService) StartGprcServer(host string, port int) error {
 		return err
 	}
 	return nil
+}
+
+func (s *OnlineFeatureService) StartHttpServer(host string, port int) error {
+	// TODO(oleksii): enable logging
+	var loggingService *logging.LoggingService = nil
+	ser := server.NewHttpServer(s.fs, loggingService)
+	log.Printf("Starting a HTTP server on host %s port %d\n", host, port)
+
+	go func() {
+		// As soon as these signals are received from OS, try to gracefully stop the gRPC server
+		<-s.grpcStopCh
+		fmt.Println("Stopping the HTTP server...")
+		err := ser.Stop()
+		if err != nil {
+			fmt.Printf("Error when stopping the HTTP server: %v\n", err)
+		}
+	}()
+
+	return ser.Serve(host, port)
 }
 
 func (s *OnlineFeatureService) Stop() {

@@ -132,8 +132,14 @@ class EmbeddedOnlineFeatureServer:
         resp = record_batch_to_online_response(record_batch)
         return OnlineResponse(resp)
 
+    def start_http_server(self, host: str, port: int):
+        self._service.StartHttpServer(host, port)
+
     def start_grpc_server(self, host: str, port: int):
         self._service.StartGprcServer(host, port)
+
+    def stop_http_server(self):
+        self._service.Stop()
 
     def stop_grpc_server(self):
         self._service.Stop()
